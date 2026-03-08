@@ -10,46 +10,53 @@ struct HomeView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 16) {
+                VStack(spacing: 20) {
                     ScoreCardView()
-                    HealthInsightView()
                     PortfolioView()
+                    HealthInsightView()
                 }
-                .padding(.horizontal)
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
                 .padding(.bottom, 100)
             }
+            .scrollIndicators(.hidden)
             .background(Color(.systemGroupedBackground))
             .navigationTitle("Today")
+            .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         showBlockGrid = true
                     } label: {
                         Image(systemName: "calendar")
-                            .font(.title3)
+                            .font(.body.weight(.medium))
                     }
                 }
             }
             .sheet(isPresented: $showBlockGrid) {
                 BlockGridView()
+                    .presentationDetents([.large])
+                    .presentationCornerRadius(24)
+                    .presentationDragIndicator(.visible)
             }
             .safeAreaInset(edge: .bottom) {
                 Button {
                     showBlockGrid = true
                 } label: {
-                    Label("Schedule Your Day", systemImage: "calendar")
-                        .font(.headline)
+                    Text("Schedule Your Day")
+                        .font(.subheadline.weight(.semibold))
                         .frame(maxWidth: .infinity)
-                        .padding()
+                        .padding(.vertical, 14)
                         .background(Color.accentColor)
                         .foregroundStyle(.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
                 }
-                .padding(.horizontal)
+                .padding(.horizontal, 20)
                 .padding(.bottom, 8)
                 .background(.ultraThinMaterial)
             }
         }
+        .animation(.easeInOut(duration: 0.25), value: store.usedBlocks)
         .onChange(of: store.blocks) { _, _ in
             WidgetCenter.shared.reloadAllTimelines()
         }

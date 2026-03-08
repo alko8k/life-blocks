@@ -7,8 +7,8 @@ struct BlockGridView: View {
     @State private var selectedHabit: Habit? = nil
     @State private var isDragging = false
 
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 3), count: 10)
-    private let feedbackGenerator = UIImpactFeedbackGenerator(style: .light)
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 10)
+    private let feedbackGenerator = UIImpactFeedbackGenerator(style: .soft)
 
     var body: some View {
         NavigationStack {
@@ -28,9 +28,9 @@ struct BlockGridView: View {
                         // 10x10 grid with drag support
                         GeometryReader { geometry in
                             let gridWidth = geometry.size.width
-                            let cellSize = (gridWidth - 3 * 9) / 10 // 10 columns, 9 gaps of 3pt
+                            let cellSize = (gridWidth - 4 * 9) / 10
 
-                            LazyVGrid(columns: columns, spacing: 3) {
+                            LazyVGrid(columns: columns, spacing: 4) {
                                 ForEach(0..<kTotalBlocks, id: \.self) { index in
                                     BlockCell(
                                         habitId: store.blocks[index],
@@ -39,10 +39,11 @@ struct BlockGridView: View {
                                     )
                                     .onTapGesture {
                                         handleTap(at: index)
-                                        feedbackGenerator.impactOccurred()
+                                        feedbackGenerator.impactOccurred(intensity: 0.5)
                                     }
                                 }
                             }
+                            .animation(.easeOut(duration: 0.15), value: store.blocks)
                             .gesture(
                                 DragGesture(minimumDistance: 0)
                                     .onChanged { value in
@@ -53,7 +54,7 @@ struct BlockGridView: View {
                                             let newValue = selectedHabit?.id
                                             if currentValue != newValue {
                                                 handleTap(at: index)
-                                                feedbackGenerator.impactOccurred()
+                                                feedbackGenerator.impactOccurred(intensity: 0.4)
                                             }
                                         }
                                     }
@@ -88,7 +89,7 @@ struct BlockGridView: View {
                         // Eraser
                         Button {
                             selectedHabit = nil
-                            feedbackGenerator.impactOccurred()
+                            feedbackGenerator.impactOccurred(intensity: 0.5)
                         } label: {
                             VStack(spacing: 4) {
                                 Image(systemName: "eraser.fill")
@@ -105,11 +106,12 @@ struct BlockGridView: View {
                         ForEach(settingsStore.allHabits, id: \.id) { habit in
                             Button {
                                 selectedHabit = habit
-                                feedbackGenerator.impactOccurred()
+                                feedbackGenerator.impactOccurred(intensity: 0.5)
                             } label: {
                                 VStack(spacing: 4) {
-                                    Text(habit.emoji)
+                                    Image(systemName: habit.sfSymbol)
                                         .font(.title2)
+                                        .foregroundStyle(habit.color)
                                     Text(habit.name)
                                         .font(.caption2)
                                         .lineLimit(1)
@@ -136,8 +138,9 @@ struct BlockGridView: View {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Reset") {
                         store.resetToday()
-                        feedbackGenerator.impactOccurred()
+                        feedbackGenerator.impactOccurred(intensity: 0.5)
                     }
+                    .font(.subheadline.weight(.medium))
                     .foregroundStyle(.red)
                 }
                 ToolbarItem(placement: .topBarTrailing) {
@@ -159,7 +162,7 @@ struct BlockGridView: View {
     }
 
     private func indexFromPoint(_ point: CGPoint, cellSize: CGFloat, gridWidth: CGFloat) -> Int? {
-        let spacing: CGFloat = 3
+        let spacing: CGFloat = 4
         let step = cellSize + spacing
 
         let col = Int(point.x / step)
@@ -186,8 +189,9 @@ struct BlockCell: View {
             .aspectRatio(1, contentMode: .fit)
             .overlay {
                 if let habit {
-                    Text(habit.emoji)
-                        .font(.system(size: 8))
+                    Image(systemName: habit.sfSymbol)
+                        .font(.system(size: 6))
+                        .foregroundStyle(.white.opacity(0.9))
                 }
             }
     }

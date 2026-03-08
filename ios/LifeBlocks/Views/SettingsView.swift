@@ -13,29 +13,32 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
-                // Appearance
-                Section("Appearance") {
-                    Picker("Theme", selection: Binding(
+                Section {
+                    Picker("Appearance", selection: Binding(
                         get: { settingsStore.settings.theme },
                         set: { settingsStore.updateTheme($0) }
                     )) {
-                        Text("☀️ Light").tag("light")
-                        Text("🌙 Dark").tag("dark")
-                        Text("⚙️ System").tag("system")
+                        Text("Light").tag("light")
+                        Text("Dark").tag("dark")
+                        Text("System").tag("system")
                     }
                     .pickerStyle(.segmented)
+                } header: {
+                    Text("Appearance")
                 }
 
                 // Habits
                 Section("Habits") {
                     ForEach(settingsStore.allHabits, id: \.id) { habit in
                         HStack {
-                            Text(habit.emoji)
+                            Image(systemName: habit.sfSymbol)
                                 .font(.title3)
+                                .foregroundStyle(habit.color)
+                                .frame(width: 28, alignment: .center)
                             VStack(alignment: .leading) {
                                 Text(habit.name)
                                     .font(.subheadline.bold())
-                                Text(String(format: "%+.1f%% \u{2022} %@", habit.baseReturn, habit.category.label))
+                                Text(String(format: "%+.1f/block · %@", habit.baseReturn, habit.category.label))
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
@@ -110,6 +113,9 @@ struct SettingsView: View {
             .navigationTitle("Settings")
             .sheet(isPresented: $showHabitEditor) {
                 HabitEditorView(editHabit: editingHabit)
+                    .presentationDetents([.medium, .large])
+                    .presentationCornerRadius(24)
+                    .presentationDragIndicator(.visible)
             }
             .alert("Reset All Data?", isPresented: $showResetAlert) {
                 Button("Cancel", role: .cancel) {}

@@ -22,6 +22,22 @@ enum HabitCategory: String, Codable, CaseIterable {
         case .drain: "⚠️"
         }
     }
+
+    var sfSymbol: String {
+        switch self {
+        case .essential: return "diamond.fill"
+        case .growth: return "chart.bar.fill"
+        case .drain: return "exclamationmark.triangle.fill"
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .essential: return Color.blue
+        case .growth: return Color.green
+        case .drain: return Color.red
+        }
+    }
 }
 
 struct Habit: Identifiable, Codable, Hashable {
@@ -36,6 +52,23 @@ struct Habit: Identifiable, Codable, Hashable {
 
     var color: Color {
         Color(hex: hexColor)
+    }
+
+    /// SF Symbol for reliable display (emojis can show ? on some devices)
+    var sfSymbol: String {
+        switch id {
+        case "sleep": return "bed.double.fill"
+        case "exercise": return "figure.run"
+        case "connect": return "bubble.left.and.bubble.right.fill"
+        case "deepwork": return "target"
+        case "build": return "hammer.fill"
+        case "meditate": return "leaf.fill"
+        case "reading": return "book.fill"
+        case "japanese": return "character.book.closed.fill"
+        case "scroll": return "iphone"
+        case "netflix": return "tv.fill"
+        default: return "circle.fill"
+        }
     }
 }
 
@@ -60,17 +93,18 @@ struct UserSettings: Codable {
 
 let kTotalBlocks = 100
 
+/// Base return = per-block impact. Blue Chips 7–9, Growth 4–7, Drains -2.5 to -4
 let kDefaultHabits: [Habit] = [
-    Habit(id: "sleep", emoji: "😴", name: "Sleep", baseReturn: 8.2, hexColor: "#5E5CE6", category: .essential),
-    Habit(id: "deepwork", emoji: "🎯", name: "Deep Work", baseReturn: 7.5, hexColor: "#32ADE6", category: .growth),
-    Habit(id: "exercise", emoji: "🏃", name: "Exercise", baseReturn: 6.8, hexColor: "#FF9F0A", category: .essential),
-    Habit(id: "reading", emoji: "📚", name: "Reading", baseReturn: 4.8, hexColor: "#BF5AF2", category: .growth),
-    Habit(id: "meditate", emoji: "🧘", name: "Meditate", baseReturn: 5.2, hexColor: "#64D2FF", category: .growth),
-    Habit(id: "japanese", emoji: "🇯🇵", name: "Japanese", baseReturn: 4.2, hexColor: "#FF375F", category: .growth),
-    Habit(id: "build", emoji: "⚡", name: "Build", baseReturn: 6.1, hexColor: "#30D158", category: .growth),
-    Habit(id: "connect", emoji: "💬", name: "Connect", baseReturn: 5.5, hexColor: "#FF6482", category: .essential),
-    Habit(id: "scroll", emoji: "📱", name: "Scrolling", baseReturn: -2.1, hexColor: "#8E8E93", category: .drain),
-    Habit(id: "netflix", emoji: "📺", name: "Binge", baseReturn: -1.5, hexColor: "#636366", category: .drain),
+    Habit(id: "sleep", emoji: "😴", name: "Sleep", baseReturn: 8.5, hexColor: "#5E5CE6", category: .essential),
+    Habit(id: "exercise", emoji: "🏃", name: "Exercise", baseReturn: 7.5, hexColor: "#FF9F0A", category: .essential),
+    Habit(id: "connect", emoji: "💬", name: "Connect", baseReturn: 7.0, hexColor: "#FF6482", category: .essential),
+    Habit(id: "deepwork", emoji: "🎯", name: "Deep Work", baseReturn: 6.5, hexColor: "#32ADE6", category: .growth),
+    Habit(id: "build", emoji: "⚡", name: "Build", baseReturn: 6.0, hexColor: "#30D158", category: .growth),
+    Habit(id: "meditate", emoji: "🧘", name: "Meditate", baseReturn: 5.0, hexColor: "#64D2FF", category: .growth),
+    Habit(id: "reading", emoji: "📚", name: "Reading", baseReturn: 4.5, hexColor: "#BF5AF2", category: .growth),
+    Habit(id: "japanese", emoji: "🇯🇵", name: "Japanese", baseReturn: 4.0, hexColor: "#FF375F", category: .growth),
+    Habit(id: "scroll", emoji: "📱", name: "Scrolling", baseReturn: -3.5, hexColor: "#8E8E93", category: .drain),
+    Habit(id: "netflix", emoji: "📺", name: "Binge", baseReturn: -2.5, hexColor: "#636366", category: .drain),
 ]
 
 /// Backward-compatible reference

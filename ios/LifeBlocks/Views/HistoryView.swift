@@ -14,7 +14,7 @@ struct HistoryView: View {
                 if history.isEmpty {
                     emptyState
                 } else {
-                    VStack(spacing: 16) {
+                    VStack(spacing: 20) {
                         statsGrid
                         weeklyChart
                         calendarHeatMap
@@ -22,68 +22,77 @@ struct HistoryView: View {
                         categoryBreakdown
                         topHabitsList
                     }
-                    .padding(.horizontal)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 8)
                     .padding(.bottom, 100)
                 }
             }
+            .scrollIndicators(.hidden)
             .background(Color(.systemGroupedBackground))
             .navigationTitle("History")
+            .navigationBarTitleDisplayMode(.large)
         }
+        .animation(.easeInOut(duration: 0.25), value: selectedDay?.date)
     }
 
     // MARK: - Empty State
 
     private var emptyState: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 12) {
             Spacer()
             Text("📈")
-                .font(.system(size: 64))
+                .font(.system(size: 48))
             Text("No history yet")
-                .font(.title2.bold())
-            Text("Complete your first day of scheduling to start seeing trends and analytics here.")
+                .font(.headline.weight(.semibold))
+            Text("Complete your first day to see trends here.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
             Spacer()
         }
-        .padding(40)
+        .padding(32)
     }
 
     // MARK: - Stats Grid
 
     private var statsGrid: some View {
-        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-            StatCard(title: "7-Day Avg", value: String(format: "%+.0f%%", averageReturn(history, days: 7)), color: averageReturn(history, days: 7) >= 0 ? .green : .red)
-            StatCard(title: "All-Time Avg", value: String(format: "%+.0f%%", averageReturn(history)), color: averageReturn(history) >= 0 ? .green : .red)
-            StatCard(title: "Current Streak", value: "🔥 \(store.streak)", color: .primary)
-            StatCard(title: "Best Streak", value: "🏆 \(longestStreak(history))", color: .primary)
+        let avg7 = normalizedDayScore(totalReturn: averageReturn(history, days: 7))
+        let avgAll = normalizedDayScore(totalReturn: averageReturn(history))
+        return LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+            StatCard(title: "7-Day Avg", value: String(format: "%.0f", avg7), color: avg7 >= 70 ? .green : (avg7 >= 40 ? .primary : .orange))
+            StatCard(title: "All-Time Avg", value: String(format: "%.0f", avgAll), color: avgAll >= 70 ? .green : (avgAll >= 40 ? .primary : .orange))
+            StatCard(title: "Streak", value: "\(store.streak) days", color: .primary)
+            StatCard(title: "Best", value: "\(longestStreak(history)) days", color: .primary)
         }
     }
 
     // MARK: - Weekly Chart
 
     private var weeklyChart: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Weekly Returns")
-                .font(.headline)
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Weekly Score")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
 
             let last7 = Array(history.suffix(7))
 
             if #available(iOS 16.0, *) {
                 Chart(last7, id: \.date) { day in
+                    let score = normalizedDayScore(totalReturn: day.totalReturn)
                     BarMark(
                         x: .value("Day", String(day.date.suffix(5))),
-                        y: .value("Return", day.totalReturn)
+                        y: .value("Score", score)
                     )
-                    .foregroundStyle(day.totalReturn >= 0 ? Color.green : Color.red)
+                    .foregroundStyle(score >= 70 ? Color.green : (score >= 40 ? Color.accentColor : Color.orange))
                 }
-                .frame(height: 150)
+                .frame(height: 140)
             } else {
                 Text("Charts require iOS 16+")
+                    .font(.caption)
                     .foregroundStyle(.secondary)
             }
         }
-        .padding()
+        .padding(20)
         .background(Color(.secondarySystemGroupedBackground))
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
@@ -91,9 +100,10 @@ struct HistoryView: View {
     // MARK: - Calendar Heat Map
 
     private var calendarHeatMap: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 12) {
             Text("Last 30 Days")
-                .font(.headline)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
 
             let days = calendarDays()
             let columns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
@@ -116,11 +126,11 @@ struct HistoryView: View {
                     }
 
                     ForEach(days, id: \.date) { day in
-                        let ret = day.data?.totalReturn ?? 0
+                        let score = day.data.map { normalizedDayScore(totalReturn: $0.totalReturn) } ?? 0
                         let hasData = day.data != nil
 
                         RoundedRectangle(cornerRadius: 4)
-                            .fill(cellColor(hasData: hasData, ret: ret))
+                            .fill(cellColor(hasData: hasData, score: score))
                             .aspectRatio(1, contentMode: .fit)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 4)
@@ -133,7 +143,7 @@ struct HistoryView: View {
                 }
             }
         }
-        .padding()
+        .padding(20)
         .background(Color(.secondarySystemGroupedBackground))
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
@@ -149,9 +159,13 @@ struct HistoryView: View {
                     .font(.headline)
 
                 HStack {
-                    Text(String(format: "%+.0f%%", day.totalReturn))
+                    let score = normalizedDayScore(totalReturn: day.totalReturn)
+                    Text(String(format: "%.0f", score))
                         .font(.title.bold())
-                        .foregroundStyle(day.totalReturn >= 0 ? .green : .red)
+                        .foregroundStyle(score >= 70 ? .green : (score >= 40 ? .primary : .orange))
+                    Text("/ 100")
+                        .font(.subheadline)
+                        .foregroundStyle(.tertiary)
                     Spacer()
                     Text("🔥 \(day.streak) day streak")
                         .font(.subheadline)
@@ -164,7 +178,10 @@ struct HistoryView: View {
                 ForEach(allocs.sorted(by: { $0.value > $1.value }), id: \.key) { habitId, blocks in
                     if let habit = habitById(habitId, from: settingsStore.allHabits) {
                         HStack {
-                            Text(habit.emoji)
+                            Image(systemName: habit.sfSymbol)
+                                .font(.subheadline)
+                                .foregroundStyle(habit.color)
+                                .frame(width: 24, alignment: .center)
                             Text(habit.name)
                                 .font(.subheadline)
                             Spacer()
@@ -172,16 +189,17 @@ struct HistoryView: View {
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                             let ret = calculateHabitReturn(habit: habit, blocks: blocks, multiplier: multiplier)
-                            Text(String(format: "%+.1f%%", ret))
+                            Text(String(format: "%+.0f pts", ret))
                                 .font(.caption.bold())
                                 .foregroundStyle(ret >= 0 ? .green : .red)
                         }
                     }
                 }
             }
-            .padding()
+            .padding(20)
             .background(Color(.secondarySystemGroupedBackground))
             .clipShape(RoundedRectangle(cornerRadius: 16))
+            .transition(.opacity.combined(with: .move(edge: .top)))
         }
     }
 
@@ -190,9 +208,10 @@ struct HistoryView: View {
     private var categoryBreakdown: some View {
         let dist = categoryDistribution(history, allHabits: settingsStore.allHabits)
 
-        return VStack(alignment: .leading, spacing: 8) {
+        return VStack(alignment: .leading, spacing: 12) {
             Text("Category Mix")
-                .font(.headline)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
 
             HStack(spacing: 16) {
                 CategoryBar(label: "💎 Blue Chips", pct: dist.essential, color: .blue)
@@ -200,7 +219,7 @@ struct HistoryView: View {
                 CategoryBar(label: "⚠️ Drains", pct: dist.drain, color: .red)
             }
         }
-        .padding()
+        .padding(20)
         .background(Color(.secondarySystemGroupedBackground))
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
@@ -210,14 +229,17 @@ struct HistoryView: View {
     private var topHabitsList: some View {
         let top = topHabits(history, allHabits: settingsStore.allHabits, limit: 5)
 
-        return VStack(alignment: .leading, spacing: 8) {
+        return VStack(alignment: .leading, spacing: 12) {
             Text("Most Invested")
-                .font(.headline)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
 
-            ForEach(top) { entry in
+                ForEach(top) { entry in
                 HStack {
-                    Text(entry.habit.emoji)
+                    Image(systemName: entry.habit.sfSymbol)
                         .font(.title3)
+                        .foregroundStyle(entry.habit.color)
+                        .frame(width: 24, alignment: .center)
                     VStack(alignment: .leading) {
                         Text(entry.habit.name)
                             .font(.subheadline.bold())
@@ -232,7 +254,7 @@ struct HistoryView: View {
                 }
             }
         }
-        .padding()
+        .padding(20)
         .background(Color(.secondarySystemGroupedBackground))
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
@@ -263,12 +285,11 @@ struct HistoryView: View {
         return days
     }
 
-    private func cellColor(hasData: Bool, ret: Double) -> Color {
+    private func cellColor(hasData: Bool, score: Double) -> Color {
         guard hasData else { return Color(.systemGray5) }
-        if ret > 200 { return Color.green }
-        if ret > 100 { return Color.green.opacity(0.7) }
-        if ret > 0 { return Color.green.opacity(0.4) }
-        if ret == 0 { return Color(.systemGray5) }
+        if score >= 70 { return Color.green }
+        if score >= 40 { return Color.green.opacity(0.6) }
+        if score >= 20 { return Color.orange.opacity(0.5) }
         return Color.red.opacity(0.4)
     }
 
@@ -291,16 +312,15 @@ struct StatCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .textCase(.uppercase)
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
             Text(value)
-                .font(.title2.bold())
+                .font(.subheadline.weight(.semibold))
                 .foregroundStyle(color)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
-        .background(Color(.secondarySystemGroupedBackground))
+        .padding(16)
+        .background(Color(.tertiarySystemGroupedBackground))
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 }

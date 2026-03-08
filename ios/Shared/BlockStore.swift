@@ -88,6 +88,24 @@ class BlockStore: ObservableObject {
         save()
     }
 
+    /// Set exact block count for a habit (1 block = 10 min). Replaces current allocation.
+    func setBlocks(habitId: String, count: Int) {
+        let capped = max(0, min(count, kTotalBlocks))
+        // Remove all existing blocks for this habit
+        for i in blocks.indices where blocks[i] == habitId {
+            blocks[i] = nil
+        }
+        // Add new blocks, respecting total limit
+        let otherUsed = blocks.compactMap { $0 }.count
+        let toAdd = min(capped, kTotalBlocks - otherUsed)
+        var added = 0
+        for i in blocks.indices where added < toAdd && blocks[i] == nil {
+            blocks[i] = habitId
+            added += 1
+        }
+        save()
+    }
+
     func setBlock(at index: Int, habitId: String?) {
         guard index >= 0, index < kTotalBlocks else { return }
         blocks[index] = habitId

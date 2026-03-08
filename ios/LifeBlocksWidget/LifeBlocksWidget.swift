@@ -128,8 +128,9 @@ struct MediumWidgetView: View {
 
                 ForEach(topHabits, id: \.0.id) { habit, count in
                     HStack(spacing: 4) {
-                        Text(habit.emoji)
+                        Image(systemName: habit.sfSymbol)
                             .font(.caption)
+                            .foregroundStyle(habit.color)
                         Text("\(count)")
                             .font(.caption.monospacedDigit())
                     }

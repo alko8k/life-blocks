@@ -38,7 +38,7 @@ struct HabitEditorView: View {
                     TextField("Habit name", text: $name)
                 }
 
-                Section("Base Return: \(String(format: "%+.1f%%", baseReturn))") {
+                Section("Per-block impact: \(String(format: "%+.1f", baseReturn))") {
                     Slider(value: $baseReturn, in: -5...10, step: 0.1)
                     HStack {
                         Text("-5%").font(.caption).foregroundStyle(.secondary)
@@ -85,7 +85,7 @@ struct HabitEditorView: View {
                                     .foregroundStyle(.secondary)
                             }
                             Spacer()
-                            Text(String(format: "%+.1f%%", baseReturn))
+                            Text(String(format: "%+.1f", baseReturn))
                                 .font(.headline)
                                 .foregroundStyle(baseReturn >= 0 ? .green : .red)
                         }

@@ -23,6 +23,21 @@ func habitConsistency(_ history: [DayData], habitId: String) -> Double {
     return Double(daysUsed) / Double(history.count) * 100
 }
 
+/// Block counts per category for current allocations (used in segmented progress bar)
+func categoryBlockCounts(allocations: Allocations, allHabits: [Habit]) -> (essential: Int, growth: Int, drain: Int) {
+    var essential = 0, growth = 0, drain = 0
+    for (habitId, count) in allocations {
+        if let habit = habitById(habitId, from: allHabits) {
+            switch habit.category {
+            case .essential: essential += count
+            case .growth: growth += count
+            case .drain: drain += count
+            }
+        }
+    }
+    return (essential, growth, drain)
+}
+
 func categoryDistribution(_ history: [DayData], allHabits: [Habit]) -> (essential: Double, growth: Double, drain: Double) {
     guard !history.isEmpty else { return (0, 0, 0) }
 

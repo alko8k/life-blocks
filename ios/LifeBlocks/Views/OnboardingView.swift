@@ -4,14 +4,14 @@ struct OnboardingView: View {
     @EnvironmentObject var settingsStore: SettingsStore
     @State private var currentPage = 0
 
-    private let pages: [(emoji: String, title: String, subtitle: String, description: String)] = [
-        ("📊", "Life Blocks", "Invest your time like a portfolio",
+    private let pages: [(symbol: String, title: String, subtitle: String, description: String)] = [
+        ("chart.bar.fill", "Life Blocks", "Invest your time like a portfolio",
          "Think of your day as a portfolio of investments. Allocate your time wisely and watch your returns compound."),
-        ("🧱", "100 Blocks a Day", "You have 16.6 waking hours",
+        ("square.grid.3x3.fill", "100 Blocks a Day", "You have 16.6 waking hours",
          "Each block is 10 minutes. You have exactly 100 blocks from 6 AM to 10:40 PM. How will you invest them?"),
-        ("💎", "Three Categories", "Blue Chips, Growth & Drains",
+        ("diamond.fill", "Three Categories", "Blue Chips, Growth & Drains",
          "Blue Chips are essentials like sleep and exercise. Growth habits build your future. Drains cost you returns."),
-        ("🔥", "Streaks Compound", "Consistency multiplies returns",
+        ("flame.fill", "Streaks Compound", "Consistency multiplies returns",
          "Every consecutive day increases your multiplier. A 7-day streak nearly doubles your returns. Stay consistent."),
     ]
 
@@ -34,8 +34,9 @@ struct OnboardingView: View {
             TabView(selection: $currentPage) {
                 ForEach(0..<pages.count, id: \.self) { index in
                     VStack(spacing: 16) {
-                        Text(pages[index].emoji)
-                            .font(.system(size: 72))
+                        Image(systemName: pages[index].symbol)
+                            .font(.system(size: 56))
+                            .foregroundStyle(Color.accentColor)
                             .padding(.bottom, 8)
 
                         Text(pages[index].title)
@@ -44,7 +45,7 @@ struct OnboardingView: View {
 
                         Text(pages[index].subtitle)
                             .font(.callout.weight(.semibold))
-                            .foregroundStyle(.blue)
+                            .foregroundStyle(Color.accentColor)
                             .multilineTextAlignment(.center)
 
                         Text(pages[index].description)
@@ -57,7 +58,7 @@ struct OnboardingView: View {
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
-            .animation(.easeInOut, value: currentPage)
+            .animation(.easeInOut(duration: 0.3), value: currentPage)
 
             Spacer()
 
@@ -67,9 +68,9 @@ struct OnboardingView: View {
                 HStack(spacing: 8) {
                     ForEach(0..<pages.count, id: \.self) { index in
                         Capsule()
-                            .fill(index == currentPage ? Color.blue : Color(.systemGray4))
-                            .frame(width: index == currentPage ? 24 : 8, height: 8)
-                            .animation(.spring(response: 0.3), value: currentPage)
+                            .fill(index == currentPage ? Color.accentColor : Color(.systemGray4))
+                            .frame(width: index == currentPage ? 20 : 8, height: 8)
+                            .animation(.easeInOut(duration: 0.25), value: currentPage)
                     }
                 }
 
@@ -78,20 +79,20 @@ struct OnboardingView: View {
                     if currentPage == pages.count - 1 {
                         settingsStore.completeOnboarding()
                     } else {
-                        withAnimation {
+                        withAnimation(.easeInOut(duration: 0.3)) {
                             currentPage += 1
                         }
                     }
                 } label: {
                     Text(currentPage == pages.count - 1 ? "Get Started" : "Continue")
-                        .font(.headline)
+                        .font(.subheadline.weight(.semibold))
                         .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
+                        .padding(.vertical, 16)
+                        .background(Color.accentColor)
                         .foregroundStyle(.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
                 }
-                .padding(.horizontal, 32)
+                .padding(.horizontal, 24)
             }
             .padding(.bottom, 48)
         }

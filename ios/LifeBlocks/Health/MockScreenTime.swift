@@ -15,7 +15,7 @@ class MockScreenTime: ObservableObject {
         ScreenTimeEntry(appName: "YouTube", icon: "play.rectangle.fill", minutes: 58, category: "Entertainment"),
         ScreenTimeEntry(appName: "Netflix", icon: "tv.fill", minutes: 82, category: "Entertainment"),
         ScreenTimeEntry(appName: "TikTok", icon: "music.note", minutes: 31, category: "Social"),
-        ScreenTimeEntry(appName: "Safari", icon: "safari.fill", minutes: 24, category: "Productivity"),
+        ScreenTimeEntry(appName: "Safari", icon: "globe", minutes: 24, category: "Productivity"),
         ScreenTimeEntry(appName: "Messages", icon: "message.fill", minutes: 18, category: "Communication"),
     ]
 

@@ -16,7 +16,9 @@ class SettingsStore: ObservableObject {
     }
 
     func updateTheme(_ theme: String) {
-        settings.theme = theme
+        var updated = settings
+        updated.theme = theme
+        settings = updated
         save()
     }
 

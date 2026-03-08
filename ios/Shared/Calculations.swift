@@ -3,11 +3,24 @@ import Foundation
 typealias Allocations = [String: Int]
 typealias BlockAssignments = [String?]
 
+// MARK: - Formula Constants
+// Per-block return = baseReturn × multiplier × blocks
+// Streak multiplier: (1 + streak × kStreakFactor)^(streak / kStreakExponentBase)
+// A 7-day streak ≈ 1.07× returns; consistency compounds.
+private let kStreakFactor: Double = 0.01
+private let kStreakExponentBase: Double = 7.0
+
+// Day score: 0–100 scale. Maps totalReturn to intuitive score.
+// totalReturn ~ -200 (all drains) → 0, ~ +800 (great day) → 100
+private let kScoreOffset: Double = 200
+private let kScoreDivisor: Double = 10
+
 func calculateMultiplier(streak: Int) -> Double {
     guard streak >= 1 else { return 1.0 }
-    return pow(1.0 + Double(streak) * 0.01, Double(streak) / 7.0)
+    return pow(1.0 + Double(streak) * kStreakFactor, Double(streak) / kStreakExponentBase)
 }
 
+/// Per-block impact: baseReturn × multiplier. Total habit return = this × blocks.
 func calculateHabitReturn(habit: Habit, blocks: Int, multiplier: Double) -> Double {
     guard blocks > 0 else { return 0 }
     return habit.baseReturn * multiplier * Double(blocks)
@@ -20,6 +33,11 @@ func calculateTotalReturn(allocations: Allocations, streak: Int, allHabits: [Hab
         let blocks = allocations[habit.id] ?? 0
         return sum + calculateHabitReturn(habit: habit, blocks: blocks, multiplier: multiplier)
     }
+}
+
+/// Normalized day score 0–100. Makes total return intuitive.
+func normalizedDayScore(totalReturn: Double) -> Double {
+    max(0, min(100, (totalReturn + kScoreOffset) / kScoreDivisor))
 }
 
 func blocksToAllocations(_ blocks: BlockAssignments) -> Allocations {
